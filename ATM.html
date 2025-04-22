@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank ATM Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .atm-container {
+            width: 100%;
+            max-width: 420px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .atm-header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 4px solid #3498db;
+        }
+        
+        .atm-header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        .atm-screen {
+            padding: 25px;
+        }
+        
+        .screen {
+            display: none;
+        }
+        
+        .active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .form-group {
+            margin-bottom: 18px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border 0.2s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        
+        .btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 15px;
+            border-radius: 6px;
+            width: 100%;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-bottom: 10px;
+        }
+        
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-secondary {
+            background-color: #95a5a6;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+        }
+        
+        .btn-danger {
+            background-color: #e74c3c;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        
+        .menu-options {
+            margin: 15px 0;
+        }
+        
+        .menu-option {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .menu-option:hover {
+            background-color: #eaecee;
+        }
+        
+        .icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #3498db;
+        }
+        
+        .error-message {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .balance-display {
+            text-align: center;
+            padding: 20px 0;
+        }
+        
+        .balance-amount {
+            font-size: 36px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 15px 0;
+        }
+        
+        .transaction-list {
+            list-style: none;
+            margin-top: 15px;
+        }
+        
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .transaction-type {
+            font-weight: 500;
+        }
+        
+        .transaction-amount {
+            font-weight: bold;
+        }
+        
+        .withdrawal {
+            color: #e74c3c;
+        }
+        
+        .deposit {
+            color: #2ecc71;
+        }
+        
+        .result-message {
+            text-align: center;
+            padding: 20px 0;
+            font-size: 18px;
+        }
+        
+        .success-icon {
+            color: #2ecc71;
+            font-size: 48px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px 0;
+        }
+        
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 480px) {
+            .atm-container {
+                border-radius: 0;
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="atm-container">
+        <div class="atm-header">
+            <h1>ATM System</h1>
+        </div>
+        
+        <div class="atm-screen">
+            <!-- Loading indicator -->
+            <div id="loading-screen" class="loading">
+                <div class="loader"></div>
+                <p>Processing...</p>
+            </div>
+            
+            <!-- Login Screen -->
+            <div id="login-screen" class="screen active">
+                <h2>Welcome</h2>
+                <p style="margin: 10px 0 20px;">Please enter your credentials</p>
+                
+                <div class="form-group">
+                    <label for="atm-number">ATM Card Number</label>
+                    <input type="text" id="atm-number" placeholder="Enter your card number">
+                </div>
+                
+                <div class="form-group">
+                    <label for="pin">PIN</label>
+                    <input type="password" id="pin" placeholder="Enter your PIN">
+                    <div id="login-error" class="error-message">Incorrect ATM Number or PIN</div>
+                </div>
+                
+                <button id="login-btn" class="btn">Login</button>
+            </div>
+            
+            <!-- Main Menu Screen -->
+            <div id="menu-screen" class="screen">
+                <h2>Main Menu</h2>
+                <p style="margin: 10px 0 20px;">Please select an option</p>
+                
+                <div class="menu-options">
+                    <div id="view-balance-option" class="menu-option">
+                        <div class="icon">💰</div>
+                        <span>View Available Balance</span>
+                    </div>
+                    
+                    <div id="withdraw-option" class="menu-option">
+                        <div class="icon">⬇️</div>
+                        <span>Withdraw Amount</span>
+                    </div>
+                    
+                    <div id="deposit-option" class="menu-option">
+                        <div class="icon">⬆️</div>
+                        <span>Deposit Amount</span>
+                    </div>
+                    
+                    <div id="mini-statement-option" class="menu-option">
+                        <div class="icon">📃</div>
+                        <span>View Mini Statement</span>
+                    </div>
+                    
+                    <div id="exit-option" class="menu-option">
+                        <div class="icon">🚪</div>
+                        <span>Exit</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Balance Screen -->
+            <div id="balance-screen" class="screen">
+                <h2>Available Balance</h2>
+                
+                <div class="balance-display">
+                    <div class="balance-amount" id="current-balance">₹10,000.00</div>
+                </div>
+                
+                <button id="balance-back-btn" class="btn">Back to Menu</button>
+            </div>
+            
+            <!-- Withdraw Screen -->
+            <div id="withdraw-screen" class="screen">
+                <h2>Withdraw Amount</h2>
+                <p style="margin: 10px 0 20px; color: #7f8c8d;">Please enter amount in multiples of ₹500</p>
+                
+                <div class="form-group">
+                    <label for="withdraw-amount">Amount to Withdraw</label>
+                    <input type="number" id="withdraw-amount" placeholder="Enter amount">
+                    <div id="withdraw-error" class="error-message">Error message here</div>
+                </div>
+                
+                <button id="withdraw-confirm-btn" class="btn">Confirm Withdrawal</button>
+                <button id="withdraw-back-btn" class="btn btn-secondary">Back to Menu</button>
+            </div>
+            
+            <!-- Withdraw Result Screen -->
+            <div id="withdraw-result-screen" class="screen">
+                <div class="success-icon">✓</div>
+                <h2>Withdrawal Successful</h2>
+                
+                <div class="result-message">
+                    <p id="withdraw-result-message">You have withdrawn ₹0</p>
+                    <div class="balance-display">
+                        <p>New Balance:</p>
+                        <div class="balance-amount" id="withdraw-new-balance">₹10,000.00</div>
+                    </div>
+                </div>
+                
+                <button id="withdraw-result-back-btn" class="btn">Back to Menu</button>
+            </div>
+            
+            <!-- Deposit Screen -->
+            <div id="deposit-screen" class="screen">
+                <h2>Deposit Amount</h2>
+                
+                <div class="form-group">
+                    <label for="deposit-amount">Amount to Deposit</label>
+                    <input type="number" id="deposit-amount" placeholder="Enter amount">
+                    <div id="deposit-error" class="error-message">Error message here</div>
+                </div>
+                
+                <button id="deposit-confirm-btn" class="btn">Confirm Deposit</button>
+                <button id="deposit-back-btn" class="btn btn-secondary">Back to Menu</button>
+            </div>
+            
+            <!-- Deposit Result Screen -->
+            <div id="deposit-result-screen" class="screen">
+                <div class="success-icon">✓</div>
+                <h2>Deposit Successful</h2>
+                
+                <div class="result-message">
+                    <p id="deposit-result-message">You have deposited ₹0</p>
+                    <div class="balance-display">
+                        <p>New Balance:</p>
+                        <div class="balance-amount" id="deposit-new-balance">₹10,000.00</div>
+                    </div>
+                </div>
+                
+                <button id="deposit-result-back-btn" class="btn">Back to Menu</button>
+            </div>
+            
+            <!-- Mini Statement Screen -->
+            <div id="mini-statement-screen" class="screen">
+                <h2>Mini Statement</h2>
+                
+                <div id="no-transactions" style="text-align: center; padding: 20px; display: none;">
+                    <p>No transactions yet.</p>
+                </div>
+                
+                <ul id="transaction-list" class="transaction-list">
+                    <!-- Transactions will be populated here -->
+                </ul>
+                
+                <button id="statement-back-btn" class="btn" style="margin-top: 20px;">Back to Menu</button>
+            </div>
+            
+            <!-- Exit Confirmation Screen -->
+            <div id="exit-confirm-screen" class="screen">
+                <h2>Exit ATM</h2>
+                
+                <div class="result-message">
+                    <p>Are you sure you want to exit?</p>
+                    <p style="margin-top: 10px; font-size: 14px; color: #7f8c8d;">Please collect your card.</p>
+                </div>
+                
+                <button id="exit-confirm-btn" class="btn btn-danger">Yes, Exit</button>
+                <button id="exit-cancel-btn" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Function to format currency in Indian Rupees
+        function formatCurrency(amount) {
+            return '₹' + parseFloat(amount).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+        }
+        
+        // Show a specific screen
+        function showScreen(screenId) {
+            // Hide all screens
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            
+            // Show the requested screen
+            document.getElementById(screenId).classList.add('active');
+        }
+        
+        // Show loading indicator
+        function showLoading() {
+            document.getElementById('loading-screen').style.display = 'block';
+        }
+        
+        // Hide loading indicator
+        function hideLoading() {
+            document.getElementById('loading-screen').style.display = 'none';
+        }
+        
+        // Show an error message
+        function showError(elementId, message) {
+            const errorElement = document.getElementById(elementId);
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+        
+        // Hide an error message
+        function hideError(elementId) {
+            document.getElementById(elementId).style.display = 'none';
+        }
+
+        // API endpoints to communicate with your Java backend
+        const API_ENDPOINTS = {
+            login: '/api/atm/login',
+            viewBalance: '/api/atm/balance',
+            withdraw: '/api/atm/withdraw',
+            deposit: '/api/atm/deposit',
+            miniStatement: '/api/atm/statement'
+        };
+        
+        // Session token to maintain state between requests
+        let sessionToken = null;
+
+        // Function to call Java backend API
+        async function callBackendAPI(endpoint, data = {}) {
+            showLoading();
+            
+            // Add session token to requests after login
+            if (sessionToken && endpoint !== API_ENDPOINTS.login) {
+                data.sessionToken = sessionToken;
+            }
+            
+            try {
+                // Simulate API call delay (remove in production)
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // In a real implementation, this would be a fetch to your backend
+                // For example:
+                // const response = await fetch(endpoint, {
+                //     method: 'POST',
+                //     headers: {
+                //         'Content-Type': 'application/json'
+                //     },
+                //     body: JSON.stringify(data)
+                // });
+                // return await response.json();
+                
+                // Simulated responses based on your Java logic
+                // IMPORTANT: In a real implementation, replace this with actual API calls to your Java backend
+                let response;
+                
+                switch(endpoint) {
+                    case API_ENDPOINTS.login:
+                        // Simulate checking credentials against your hardcoded values in Java
+                        if (data.atmNumber === '12345' && data.pin === '123') {
+                            response = { 
+                                success: true, 
+                                sessionToken: 'sample-token-' + Date.now() 
+                            };
+                            sessionToken = response.sessionToken; // Save session token
+                        } else {
+                            response = { 
+                                success: false, 
+                                message: 'Incorrect ATM Number or PIN' 
+                            };
+                        }
+                        break;
+                        
+                    case API_ENDPOINTS.viewBalance:
+                        // Simulating response from your viewBalance() method
+                        response = {
+                            success: true,
+                            balance: window.currentBalance || 10000.00
+                        };
+                        break;
+                        
+                    case API_ENDPOINTS.withdraw:
+                        const withdrawAmount = parseFloat(data.amount);
+                        
+                        // Simulating your Java withdrawAmount() logic
+                        if (withdrawAmount % 500 !== 0) {
+                            response = {
+                                success: false,
+                                message: 'Please enter the amount in multiples of 500'
+                            };
+                        } else if (withdrawAmount > (window.currentBalance || 10000.00)) {
+                            response = {
+                                success: false,
+                                message: 'Insufficient Balance!!'
+                            };
+                        } else {
+                            // Process withdrawal as per your Java implementation
+                            const newBalance = (window.currentBalance || 10000.00) - withdrawAmount;
+                            window.currentBalance = newBalance;
+                            
+                            // Add transaction to history (like your ministmt HashMap)
+                            if (!window.transactions) window.transactions = [];
+                            window.transactions.push({
+                                type: 'Withdrawn',
+                                amount: withdrawAmount,
+                                timestamp: Date.now()
+                            });
+                            
+                            response = {
+                                success: true,
+                                message: `Collect the Cash: ${formatCurrency(withdrawAmount)}`,
+                                newBalance: newBalance
+                            };
+                        }
+                        break;
+                        
+                    case API_ENDPOINTS.deposit:
+                        const depositAmount = parseFloat(data.amount);
+                        
+                        // Simulating your Java depositAmount() logic
+                        const newBalance = (window.currentBalance || 10000.00) + depositAmount;
+                        window.currentBalance = newBalance;
+                        
+                        // Add transaction to history (like your ministmt HashMap)
+                        if (!window.transactions) window.transactions = [];
+                        window.transactions.push({
+                            type: 'Deposited',
+                            amount: depositAmount,
+                            timestamp: Date.now()
+                        });
+                        
+                        response = {
+                            success: true,
+                            message: `${formatCurrency(depositAmount)} Deposited Successfully!!`,
+                            newBalance: newBalance
+                        };
+                        break;
+                        
+                    case API_ENDPOINTS.miniStatement:
+                        // Simulating your viewMiniStatement() method
+                        const transactions = window.transactions || [];
+                        response = {
+                            success: true,
+                            transactions: transactions
+                        };
+                        break;
+                        
+                    default:
+                        response = { success: false, message: 'Unknown endpoint' };
+                }
+                
+                hideLoading();
+                return response;
+                
+            } catch (error) {
+                console.error('API Error:', error);
+                hideLoading();
+                return { success: false, message: 'Error connecting to server' };
+            }
+        }
+        
+        // Set up event listeners when the document is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize session data
+            window.currentBalance = 10000.00; // Initial balance as in your Java code
+            window.transactions = []; // Empty transaction history
+            
+            // Login Button
+            document.getElementById('login-btn').addEventListener('click', async function() {
+                const atmNumber = document.getElementById('atm-number').value;
+                const pin = document.getElementById('pin').value;
+                
+                if (!atmNumber || !pin) {
+                    showError('login-error', 'Please enter both ATM number and PIN');
+                    return;
+                }
+                
+                const response = await callBackendAPI(API_ENDPOINTS.login, { atmNumber, pin });
+                
+                if (response.success) {
+                    hideError('login-error');
+                    showScreen('menu-screen');
+                } else {
+                    showError('login-error', response.message || 'Login failed');
+                }
+            });
+            
+            // Menu Options
+            document.getElementById('view-balance-option').addEventListener('click', async function() {
+                const response = await callBackendAPI(API_ENDPOINTS.viewBalance);
+                
+                if (response.success) {
+                    document.getElementById('current-balance').textContent = formatCurrency(response.balance);
+                    showScreen('balance-screen');
+                }
+            });
+            
+            document.getElementById('withdraw-option').addEventListener('click', function() {
+                hideError('withdraw-error');
+                document.getElementById('withdraw-amount').value = '';
+                showScreen('withdraw-screen');
+            });
+            
+            document.getElementById('deposit-option').addEventListener('click', function() {
+                hideError('deposit-error');
+                document.getElementById('deposit-amount').value = '';
+                showScreen('deposit-screen');
+            });
+            
+            document.getElementById('mini-statement-option').addEventListener('click', async function() {
+                const response = await callBackendAPI(API_ENDPOINTS.miniStatement);
+                
+                if (response.success) {
+                    const transactionList = document.getElementById('transaction-list');
+                    const noTransactions = document.getElementById('no-transactions');
+                    
+                    // Clear previous entries
+                    transactionList.innerHTML = '';
+                    
+                    if (response.transactions.length === 0) {
+                        noTransactions.style.display = 'block';
+                        transactionList.style.display = 'none';
+                    } else {
+                        noTransactions.style.display = 'none';
+                        transactionList.style.display = 'block';
+                        
+                        // Add each transaction to the list
+                        response.transactions.forEach(function(transaction) {
+                            const li = document.createElement('li');
+                            li.className = 'transaction-item';
+                            
+                            const typeClass = transaction.type === 'Withdrawn' ? 'withdrawal' : 'deposit';
+                            const prefix = transaction.type === 'Withdrawn' ? '-' : '+';
+                            
+                            // Format date if timestamp is available
+                            let dateStr = '';
+                            if (transaction.timestamp) {
+                                const date = new Date(transaction.timestamp);
+                                dateStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+                            }
+                            
+                            li.innerHTML = `
+                                <span class="transaction-type">${transaction.type}${dateStr ? ' (' + dateStr + ')' : ''}</span>
+                                <span class="transaction-amount ${typeClass}">${prefix} ${formatCurrency(transaction.amount)}</span>
+                            `;
+                            
+                            transactionList.appendChild(li);
+                        });
+                    }
+                    
+                    showScreen('mini-statement-screen');
+                }
+            });
+            
+            document.getElementById('exit-option').addEventListener('click', function() {
+                showScreen('exit-confirm-screen');
+            });
+            
+            // Balance Screen
+            document.getElementById('balance-back-btn').addEventListener('click', function() {
+                showScreen('menu-screen');
+            });
+            
+            // Withdraw Screen
+            document.getElementById('withdraw-confirm-btn').addEventListener('click', async function() {
+                const withdrawAmount = document.getElementById('withdraw-amount').value;
+                
+                if (!withdrawAmount || parseFloat(withdrawAmount) <= 0) {
+                    showError('withdraw-error', 'Please enter a valid amount');
+                    return;
+                }
+                
+                const response = await callBackendAPI(API_ENDPOINTS.withdraw, { amount: withdrawAmount });
+                
+                if (response.success) {
+                    hideError('withdraw-error');
+                    document.getElementById('withdraw-result-message').textContent = 
+                        `You have withdrawn ${formatCurrency(withdrawAmount)}`;
+                    document.getElementById('withdraw-new-balance').textContent = 
+                        formatCurrency(response.newBalance);
+                    showScreen('withdraw-result-screen');
+                } else {
+                    showError('withdraw-error', response.message || 'Withdrawal failed');
+                }
+            });
+            
+            document.getElementById('withdraw-back-btn').addEventListener('click', function() {
+                showScreen('menu-screen');
+            });
+            
+            document.getElementById('withdraw-result-back-btn').addEventListener('click', function() {
+                showScreen('menu-screen');
+            });
+            
+            // Deposit Screen
+            document.getElementById('deposit-confirm-btn').addEventListener('click', async function() {
+                const depositAmount = document.getElementById('deposit-amount').value;
+                
+                if (!depositAmount || parseFloat(depositAmount) <= 0) {
+                    showError('deposit-error', 'Please enter a valid amount');
+                    return;
+                }
+                
+                const response = await callBackendAPI(API_ENDPOINTS.deposit, { amount: depositAmount });
+                
+                if (response.success) {
+                    document.getElementById('deposit-result-message').textContent = 
+                        `You have deposited ${formatCurrency(depositAmount)}`;
+                    document.getElementById('deposit-new-balance').textContent = 
+                        formatCurrency(response.newBalance);
+                    showScreen('deposit-result-screen');
+                } else {
+                    showError('deposit-error', response.message || 'Deposit failed');
+                }
+            });
+            
+            document.getElementById('deposit-back-btn').addEventListener('click', function() {
+                showScreen('menu-screen');
+            });
+            
+            document.getElementById('deposit-result-back-btn').addEventListener('click', function() {
+                showScreen('menu-screen');
+            });
+            
+            // Mini Statement Screen
+            document.getElementById('statement-back-btn').addEventListener('click', function() {
+                showScreen('menu-screen');
+            });
+            
+            // Exit Confirmation Screen
+            document.getElementById('exit-confirm-btn').addEventListener('click', function() {
+                // Reset session
+                sessionToken = null;
+                
+                // Clear form fields
+                document.getElementById('atm-number').value = '';
+                document.getElementById('pin').value = '';
+                hideError('login-error');
+                
+                // Show login screen
+                showScreen('login-screen');
+            });
+            
+            document.getElementById('exit-cancel-btn').addEventListener('click', function() {
+                showScreen('menu-screen');
+            });
+        });
+    </script>
+</body>
+</html>
