@@ -50,12 +50,6 @@ Use the credentials below to log in and explore the app:
 
 ---
 
-## 📸 Screenshots *(optional)*
-
-> You can add images of the login form, homepage, or transaction result page here for better visual preview.
-
----
-
 ## 👤 About the Author
 
 **Shahnawaz Khan**  
@@ -70,10 +64,6 @@ Use the credentials below to log in and explore the app:
 If you found this project helpful or inspiring, consider giving it a ⭐ on [GitHub](https://github.com/Shahnawaz4518/ATM-Machine-App).  
 Your support means a lot!
 
----
 
-## 📄 License
-
-This project is licensed under the [MIT License](LICENSE).
 
 
